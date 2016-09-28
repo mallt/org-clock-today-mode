@@ -12,7 +12,7 @@ The default org clock mode line will still be shown by default but can be hidden
 
 ## Usage
 - Enable the mode globally with `(org-clock-today-mode 1)`.
-- When you clock in, the total of today will be visible in de mode line and will be refreshed every minute.
+- When you clock in, the total of today will be visible in the mode line and will be refreshed every minute.
 - When you clock out, the total will be hidden.
 
 
