@@ -69,16 +69,26 @@
   (update-org-clock-today-string)
   (cancel-timer org-clock-today-timer))
 
+(defun org-clock-today-maybe-clear-org-mode-line-string ()
+  "Clear the org mode line string depending on the defcustom setting."
+  (when org-clock-today-hide-default-org-clock-mode-line
+    (setq org-mode-line-string "")
+    (force-mode-line-update)))
+
 ;;;###autoload
 (define-minor-mode org-clock-today-mode
   "Minor mode to show the total clocked time of the current day in the mode line."
   :lighter org-clock-today-string
   :global t
-  :after-hook (progn
-                (add-hook 'org-clock-in-hook 'start-org-clock-today-timer)
-                (add-hook 'org-clock-out-hook 'stop-org-clock-today-timer)
-                (when org-clock-today-hide-default-org-clock-mode-line
-                  (defun org-clock-update-mode-line ()
-                    nil))))
+  (if org-clock-today-mode
+      (progn
+        (add-hook 'org-clock-in-hook 'start-org-clock-today-timer)
+        (add-hook 'org-clock-out-hook 'stop-org-clock-today-timer)
+        (advice-add 'org-clock-update-mode-line :after
+                    'org-clock-today-maybe-clear-org-mode-line-string))
+    (remove-hook 'org-clock-in-hook 'start-org-clock-today-timer)
+    (remove-hook 'org-clock-out-hook 'stop-org-clock-today-timer)
+    (advice-remove 'org-clock-update-mode-line
+                   'org-clock-today-maybe-clear-org-mode-line-string)))
 
 ;;; org-clock-today.el ends here
