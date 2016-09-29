@@ -39,9 +39,8 @@
 (defvar org-clock-today-string "")
 (defvar org-clock-today-timer nil)
 
-(defun update-org-clock-today-string ()
+(defun org-clock-today-update-mode-line ()
   "Calculate the total clocked time of today and update the mode line."
-  (interactive)
   (setq org-clock-today-string
         (if (org-clock-is-active)
             (with-current-buffer (org-clock-is-active)
@@ -57,16 +56,14 @@
           ""))
   (force-mode-line-update))
 
-(defun start-org-clock-today-timer ()
+(defun org-clock-today-start-timer ()
   "Start the timer that will update the mode line every 60 seconds."
-  (interactive)
   (setq org-clock-today-timer
-        (run-at-time 0 60 'update-org-clock-today-string)))
+        (run-at-time 0 60 'org-clock-today-update-mode-line)))
 
-(defun stop-org-clock-today-timer ()
+(defun org-clock-today-stop-timer ()
   "Stop the timer."
-  (interactive)
-  (update-org-clock-today-string)
+  (org-clock-today-update-mode-line)
   (cancel-timer org-clock-today-timer))
 
 (defun org-clock-today-maybe-clear-org-mode-line-string ()
@@ -82,12 +79,12 @@
   :global t
   (if org-clock-today-mode
       (progn
-        (add-hook 'org-clock-in-hook 'start-org-clock-today-timer)
-        (add-hook 'org-clock-out-hook 'stop-org-clock-today-timer)
+        (add-hook 'org-clock-in-hook 'org-clock-today-start-timer)
+        (add-hook 'org-clock-out-hook 'org-clock-today-stop-timer)
         (advice-add 'org-clock-update-mode-line :after
                     'org-clock-today-maybe-clear-org-mode-line-string))
-    (remove-hook 'org-clock-in-hook 'start-org-clock-today-timer)
-    (remove-hook 'org-clock-out-hook 'stop-org-clock-today-timer)
+    (remove-hook 'org-clock-in-hook 'org-clock-today-start-timer)
+    (remove-hook 'org-clock-out-hook 'org-clock-today-stop-timer)
     (advice-remove 'org-clock-update-mode-line
                    'org-clock-today-maybe-clear-org-mode-line-string)))
 
