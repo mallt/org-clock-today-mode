@@ -29,7 +29,7 @@
 
 (defgroup org-clock-today nil
   "Org clock today customizations."
-  :group 'convenience)
+  :group 'org-clock)
 
 (defcustom org-clock-today-hide-default-org-clock-mode-line nil
   "Controls the visibility of the default org clock mode line string."
