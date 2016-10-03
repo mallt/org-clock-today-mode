@@ -90,4 +90,6 @@
     (advice-remove 'org-clock-update-mode-line
                    'org-clock-today-maybe-clear-org-mode-line-string)))
 
+(provide 'org-clock-today)
+
 ;;; org-clock-today.el ends here
