@@ -1,4 +1,4 @@
-;;; org-clock-today.el --- Minor mode to show the total clocked time of the current day in the mode line -*- lexical-binding: t -*-
+;;; org-clock-today.el --- Show the total clocked time of the current day in the mode line -*- lexical-binding: t -*-
 
 ;; Copyright © 2016 Tijs Mallaerts
 ;;
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Minor mode to show the total clocked time of the current day in the mode line
+;; Show the total clocked time of the current day in the mode line
 
 ;;; Code:
 
