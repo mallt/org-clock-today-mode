@@ -57,7 +57,7 @@
            (open-minutes (/ open-seconds 60))
            (total-minutes (+ current-sum
                              open-minutes)))
-      (concat " " (org-minutes-to-clocksum-string total-minutes)))))
+      (org-minutes-to-clocksum-string total-minutes))))
 
 (defun org-clock-today-toggle-count-subtree ()
   "Toggle count total minutes in subtree or buffer."
@@ -69,12 +69,16 @@
   "Calculate the total clocked time of today and update the mode line."
   (setq org-clock-today-string
         (if (org-clock-is-active)
-            (if org-clock-today-current-item
+            (concat
+             " "
+             (when org-clock-today-current-item
+               (concat
                 (save-excursion
                   (save-restriction
                     (org-narrow-to-subtree)
                     (org-clock-today--total-minutes)))
-              (org-clock-today--total-minutes))
+                "|"))
+             (org-clock-today--total-minutes))
           ""))
   (force-mode-line-update))
 
