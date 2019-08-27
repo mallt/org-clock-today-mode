@@ -47,6 +47,7 @@
 (defvar org-clock-today-timer nil)
 
 (defvar org-clock-today--subtree nil)
+(defvar org-clock-today--buffer nil)
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
   (let* ((current-sum (org-clock-sum-today))
@@ -65,23 +66,30 @@
   (setq org-clock-today-current-item (not org-clock-today-current-item))
   (org-clock-today-update-mode-line))
 
+(defun org-clcok-today--display-default ()
+  "Default function to return string for displaying clocks."
+  (concat
+   " "
+   (when org-clock-today-current-item
+     (concat org-clock-today--subtree " "))
+   org-clock-today--buffer))
+
+(defvar org-clock-today-display-format #'org-clcok-today--display-default)
 (defun org-clock-today-update-mode-line ()
   "Calculate the total clocked time of today and update the mode line."
   (setq org-clock-today-string
         (if (org-clock-is-active)
             (with-current-buffer (org-clock-is-active)
-              (concat
-               " "
-               (when org-clock-today-current-item
-                 (concat
-                  (save-excursion
-                    (save-restriction
-                      (goto-char org-clock-marker)
-                      (org-narrow-to-subtree)
-                      (setq org-clock-today--subtree
-                            (org-clock-today--total-minutes))))
-                  " "))
-               (org-clock-today--total-minutes)))
+              (when org-clock-today-current-item
+                (save-excursion
+                  (save-restriction
+                    (goto-char org-clock-marker)
+                    (org-narrow-to-subtree)
+                    (setq org-clock-today--subtree
+                          (org-clock-today--total-minutes)))))
+              (setq org-clock-today--buffer
+                    (org-clock-today--total-minutes))
+              (funcall org-clock-today-display-format))
           ""))
   (force-mode-line-update))
 
