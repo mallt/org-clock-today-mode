@@ -48,16 +48,15 @@
 
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
-  (with-current-buffer (org-clock-is-active)
-    (let* ((current-sum (org-clock-sum-today))
-           (open-time-difference (time-subtract
-                                  (float-time)
-                                  (float-time org-clock-start-time)))
-           (open-seconds (time-to-seconds open-time-difference))
-           (open-minutes (/ open-seconds 60))
-           (total-minutes (+ current-sum
-                             open-minutes)))
-      (org-minutes-to-clocksum-string total-minutes))))
+  (let* ((current-sum (org-clock-sum-today))
+         (open-time-difference (time-subtract
+                                (float-time)
+                                (float-time org-clock-start-time)))
+         (open-seconds (time-to-seconds open-time-difference))
+         (open-minutes (/ open-seconds 60))
+         (total-minutes (+ current-sum
+                           open-minutes)))
+    (org-minutes-to-clocksum-string total-minutes)))
 
 (defun org-clock-today-toggle-count-subtree ()
   "Toggle count total minutes in subtree or buffer."
@@ -69,16 +68,18 @@
   "Calculate the total clocked time of today and update the mode line."
   (setq org-clock-today-string
         (if (org-clock-is-active)
-            (concat
-             " "
-             (when org-clock-today-current-item
-               (concat
-                (save-excursion
-                  (save-restriction
-                    (org-narrow-to-subtree)
-                    (org-clock-today--total-minutes)))
-                "|"))
-             (org-clock-today--total-minutes))
+            (with-current-buffer (org-clock-is-active)
+              (concat
+               " "
+               (when org-clock-today-current-item
+                 (concat
+                  (save-excursion
+                    (save-restriction
+                      (goto-char org-clock-marker)
+                      (org-narrow-to-subtree)
+                      (org-clock-today--total-minutes)))
+                  " "))
+               (org-clock-today--total-minutes)))
           ""))
   (force-mode-line-update))
 
