@@ -56,7 +56,7 @@
          (open-minutes (/ open-seconds 60))
          (total-minutes (+ current-sum
                            open-minutes)))
-    (org-minutes-to-clocksum-string total-minutes)))
+    (org-duration-from-minutes total-minutes)))
 
 (defun org-clock-today-toggle-count-subtree ()
   "Toggle count total minutes in subtree or buffer."
