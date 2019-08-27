@@ -1,10 +1,12 @@
-;;; org-clock-today.el --- Show the total clocked time of the current day in the mode line -*- lexical-binding: t -*-
+;;; org-clock-today.el --- Show total clocked time of the current day in the mode line -*- lexical-binding: t -*-
 
 ;; Copyright © 2016 Tijs Mallaerts
 ;;
 ;; Author: Tijs Mallaerts <tijs.mallaerts@gmail.com>
 
 ;; Package-Requires: ((emacs "25"))
+;; Version: 1.9.0
+;; URL: https://github.com/mallt/org-clock-today-mode
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -60,7 +62,7 @@
                            open-minutes)))
     (org-duration-from-minutes total-minutes)))
 
-(defun org-clcok-today--display-default ()
+(defun org-clock-today--display-default ()
   "Default function to return string for displaying clocks."
   (concat
    " "
@@ -68,7 +70,7 @@
      (concat org-clock-today--subtree-time " "))
    org-clock-today--buffer-time))
 
-(defcustom org-clock-today-display-format #'org-clcok-today--display-default
+(defcustom org-clock-today-display-format #'org-clock-today--display-default
   "Function to call when building string for mode-line."
   :type '(choice
           (const :tag "Do nothing" ignore)
