@@ -46,6 +46,7 @@
 (defvar org-clock-today-string "")
 (defvar org-clock-today-timer nil)
 
+(defvar org-clock-today--subtree nil)
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
   (let* ((current-sum (org-clock-sum-today))
@@ -77,7 +78,8 @@
                     (save-restriction
                       (goto-char org-clock-marker)
                       (org-narrow-to-subtree)
-                      (org-clock-today--total-minutes)))
+                      (setq org-clock-today--subtree
+                            (org-clock-today--total-minutes))))
                   " "))
                (org-clock-today--total-minutes)))
           ""))
