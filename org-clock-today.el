@@ -5,7 +5,7 @@
 ;; Author: Tijs Mallaerts <tijs.mallaerts@gmail.com>
 
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.9.0
+;; Version: 1.9.9
 ;; URL: https://github.com/mallt/org-clock-today-mode
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -40,16 +40,16 @@
   :type 'boolean
   :group 'org-clock-today)
 
-(defcustom org-clock-today-current-item nil
-  "If non-nil, count total minutes of the current subtree."
+(defcustom org-clock-today-count-subtree nil
+  "If non-nil, count total minutes of the current subtree as well."
   :type 'boolean
   :group 'org-clock-today)
 
 (defvar org-clock-today--string "")
 (defvar org-clock-today--timer nil)
-
 (defvar org-clock-today--subtree-time nil)
 (defvar org-clock-today--buffer-time nil)
+
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
   (let* ((current-sum (org-clock-sum-today))
@@ -66,7 +66,7 @@
   "Default function to return string for displaying clocks."
   (concat
    " "
-   (when org-clock-today-current-item
+   (when org-clock-today-count-subtree
      (concat org-clock-today--subtree-time " "))
    org-clock-today--buffer-time))
 
@@ -81,7 +81,7 @@
   (setq org-clock-today--string
         (if (org-clock-is-active)
             (with-current-buffer (org-clock-is-active)
-              (when org-clock-today-current-item
+              (when org-clock-today-count-subtree
                 (save-excursion
                   (save-restriction
                     (goto-char org-clock-marker)
@@ -113,7 +113,9 @@
 (defun org-clock-today-toggle-count-subtree ()
   "Toggle count total minutes in subtree or buffer."
   (interactive)
-  (setq org-clock-today-current-item (not org-clock-today-current-item))
+  (setq org-clock-today-count-subtree (not org-clock-today-count-subtree))
+  (unless org-clock-today-count-subtree
+    (setq org-clock-today--subtree-time nil))
   (org-clock-today--update-mode-line))
 
 ;;;###autoload
