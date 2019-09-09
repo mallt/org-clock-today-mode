@@ -1,11 +1,11 @@
 ;;; org-clock-today.el --- Show total clocked time of the current day in the mode line -*- lexical-binding: t -*-
 
-;; Copyright © 2016 Tijs Mallaerts
+;; Copyright © 2016-2019 Tijs Mallaerts
 ;;
 ;; Author: Tijs Mallaerts <tijs.mallaerts@gmail.com>
 
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.9.9
+;; Version: 0.0.2
 ;; URL: https://github.com/mallt/org-clock-today-mode
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -45,10 +45,10 @@
   :type 'boolean
   :group 'org-clock-today)
 
-(defvar org-clock-today--string "")
+(defvar org-clock-today-string "" "The lighter.")
+(defvar org-clock-today-subtree-time nil "Clock count extracted from subtree.")
+(defvar org-clock-today-buffer-time nil "Clock count extracted from buffer.")
 (defvar org-clock-today--timer nil)
-(defvar org-clock-today--subtree-time nil)
-(defvar org-clock-today--buffer-time nil)
 
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
@@ -67,8 +67,8 @@
   (concat
    " "
    (when org-clock-today-count-subtree
-     (concat org-clock-today--subtree-time " "))
-   org-clock-today--buffer-time))
+     (concat org-clock-today-subtree-time " "))
+   org-clock-today-buffer-time))
 
 (defcustom org-clock-today-display-format #'org-clock-today--display-default
   "Function to call when building string for mode-line."
@@ -78,7 +78,7 @@
 
 (defun org-clock-today--update-mode-line ()
   "Calculate the total clocked time of today and update the mode line."
-  (setq org-clock-today--string
+  (setq org-clock-today-string
         (if (org-clock-is-active)
             (with-current-buffer (org-clock-is-active)
               (when org-clock-today-count-subtree
@@ -86,9 +86,9 @@
                   (save-restriction
                     (goto-char org-clock-marker)
                     (org-narrow-to-subtree)
-                    (setq org-clock-today--subtree-time
+                    (setq org-clock-today-subtree-time
                           (org-clock-today--total-minutes)))))
-              (setq org-clock-today--buffer-time
+              (setq org-clock-today-buffer-time
                     (org-clock-today--total-minutes))
               (funcall org-clock-today-display-format))
           ""))
@@ -115,13 +115,13 @@
   (interactive)
   (setq org-clock-today-count-subtree (not org-clock-today-count-subtree))
   (unless org-clock-today-count-subtree
-    (setq org-clock-today--subtree-time nil))
+    (setq org-clock-today-subtree-time nil))
   (org-clock-today--update-mode-line))
 
 ;;;###autoload
 (define-minor-mode org-clock-today-mode
   "Minor mode to show the total clocked time of the current day in the mode line."
-  :lighter org-clock-today--string
+  :lighter org-clock-today-string
   :global t
   (if org-clock-today-mode
       (progn
