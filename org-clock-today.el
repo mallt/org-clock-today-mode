@@ -1,10 +1,12 @@
-;;; org-clock-today.el --- Show the total clocked time of the current day in the mode line -*- lexical-binding: t -*-
+;;; org-clock-today.el --- Show total clocked time of the current day in the mode line -*- lexical-binding: t -*-
 
-;; Copyright © 2016 Tijs Mallaerts
+;; Copyright © 2016-2019 Tijs Mallaerts
 ;;
 ;; Author: Tijs Mallaerts <tijs.mallaerts@gmail.com>
 
 ;; Package-Requires: ((emacs "25"))
+;; Version: 0.0.2
+;; URL: https://github.com/mallt/org-clock-today-mode
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -38,41 +40,83 @@
   :type 'boolean
   :group 'org-clock-today)
 
-(defvar org-clock-today-string "")
-(defvar org-clock-today-timer nil)
+(defcustom org-clock-today-count-subtree nil
+  "If non-nil, count total minutes of the current subtree as well."
+  :type 'boolean
+  :group 'org-clock-today)
 
-(defun org-clock-today-update-mode-line ()
+(defvar org-clock-today-string "" "The lighter.")
+(defvar org-clock-today-subtree-time nil "Clock count extracted from subtree.")
+(defvar org-clock-today-buffer-time nil "Clock count extracted from buffer.")
+(defvar org-clock-today--timer nil)
+
+(defun org-clock-today--total-minutes ()
+  "Return the total minutes."
+  (let* ((current-sum (org-clock-sum-today))
+         (open-time-difference (time-subtract
+                                (float-time)
+                                (float-time org-clock-start-time)))
+         (open-seconds (time-to-seconds open-time-difference))
+         (open-minutes (/ open-seconds 60))
+         (total-minutes (+ current-sum
+                           open-minutes)))
+    (org-duration-from-minutes total-minutes)))
+
+(defun org-clock-today--display-default ()
+  "Default function to return string for displaying clocks."
+  (concat
+   " "
+   (when org-clock-today-count-subtree
+     (concat org-clock-today-subtree-time " "))
+   org-clock-today-buffer-time))
+
+(defcustom org-clock-today-display-format #'org-clock-today--display-default
+  "Function to call when building string for mode-line."
+  :type '(choice
+          (const :tag "Do nothing" ignore)
+          (function :tag "Custom function")))
+
+(defun org-clock-today--update-mode-line ()
   "Calculate the total clocked time of today and update the mode line."
   (setq org-clock-today-string
         (if (org-clock-is-active)
             (with-current-buffer (org-clock-is-active)
-              (let* ((current-sum (org-clock-sum-today))
-                     (open-time-difference (time-subtract
-                                            (float-time)
-                                            (float-time org-clock-start-time)))
-                     (open-seconds (time-to-seconds open-time-difference))
-                     (open-minutes (/ open-seconds 60))
-                     (total-minutes (+ current-sum
-                                       open-minutes)))
-                (concat " " (org-minutes-to-clocksum-string total-minutes))))
+              (when org-clock-today-count-subtree
+                (save-excursion
+                  (save-restriction
+                    (goto-char org-clock-marker)
+                    (org-narrow-to-subtree)
+                    (setq org-clock-today-subtree-time
+                          (org-clock-today--total-minutes)))))
+              (setq org-clock-today-buffer-time
+                    (org-clock-today--total-minutes))
+              (funcall org-clock-today-display-format))
           ""))
   (force-mode-line-update))
 
-(defun org-clock-today-start-timer ()
+(defun org-clock-today--start-timer ()
   "Start the timer that will update the mode line every 60 seconds."
-  (setq org-clock-today-timer
-        (run-at-time 0 60 'org-clock-today-update-mode-line)))
+  (setq org-clock-today--timer
+        (run-at-time 0 60 'org-clock-today--update-mode-line)))
 
-(defun org-clock-today-stop-timer ()
+(defun org-clock-today--stop-timer ()
   "Stop the timer."
-  (org-clock-today-update-mode-line)
-  (cancel-timer org-clock-today-timer))
+  (org-clock-today--update-mode-line)
+  (cancel-timer org-clock-today--timer))
 
-(defun org-clock-today-maybe-clear-org-mode-line-string ()
+(defun org-clock-today--maybe-clear-org-mode-line-string ()
   "Clear the org mode line string depending on the defcustom setting."
   (when org-clock-today-hide-default-org-clock-mode-line
     (setq org-mode-line-string "")
     (force-mode-line-update)))
+
+(defun org-clock-today-toggle-count-subtree ()
+  "Toggle count total minutes in subtree or buffer."
+  (interactive)
+  (setq org-clock-today-count-subtree (not org-clock-today-count-subtree))
+  (unless org-clock-today-count-subtree
+    (setq org-clock-today-subtree-time nil))
+  (org-clock-today--update-mode-line))
 
 ;;;###autoload
 (define-minor-mode org-clock-today-mode
@@ -81,14 +125,14 @@
   :global t
   (if org-clock-today-mode
       (progn
-        (add-hook 'org-clock-in-hook 'org-clock-today-start-timer)
-        (add-hook 'org-clock-out-hook 'org-clock-today-stop-timer)
+        (add-hook 'org-clock-in-hook 'org-clock-today--start-timer)
+        (add-hook 'org-clock-out-hook 'org-clock-today--stop-timer)
         (advice-add 'org-clock-update-mode-line :after
-                    'org-clock-today-maybe-clear-org-mode-line-string))
-    (remove-hook 'org-clock-in-hook 'org-clock-today-start-timer)
-    (remove-hook 'org-clock-out-hook 'org-clock-today-stop-timer)
+                    'org-clock-today--maybe-clear-org-mode-line-string))
+    (remove-hook 'org-clock-in-hook 'org-clock-today--start-timer)
+    (remove-hook 'org-clock-out-hook 'org-clock-today--stop-timer)
     (advice-remove 'org-clock-update-mode-line
-                   'org-clock-today-maybe-clear-org-mode-line-string)))
+                   'org-clock-today--maybe-clear-org-mode-line-string)))
 
 (provide 'org-clock-today)
 
