@@ -52,16 +52,8 @@
 
 (defun org-clock-today--total-minutes ()
   "Return the total minutes."
-  (let ((current-sum (org-clock-sum-today))
-        (total-minutes (if org-clock-report-include-clocking-task
-                           current-sum
-                         (let* ((open-time-difference (time-subtract
-                                                       (float-time)
-                                                       (float-time org-clock-start-time)))
-                                (open-seconds (time-to-seconds open-time-difference))
-                                (open-minutes (/ open-seconds 60)))
-                           (+ current-sum open-minutes)))))
-    (org-duration-from-minutes total-minutes)))
+  (let ((org-clock-report-include-clocking-task t))
+    (org-duration-from-minutes (org-clock-sum-today))))
 
 (defun org-clock-today--display-default ()
   "Default function to return string for displaying clocks."
