@@ -45,6 +45,11 @@
   :type 'boolean
   :group 'org-clock-today)
 
+(defcustom org-clock-today-show-mode-line-when-clock-is-inactive nil
+  "If non-nil, show the mode line when no org clocks are active."
+  :type 'boolean
+  :group 'org-clock-today)
+
 (defvar org-clock-today-string "" "The lighter.")
 (defvar org-clock-today-subtree-time nil "Clock count extracted from subtree.")
 (defvar org-clock-today-buffer-time nil "Clock count extracted from buffer.")
@@ -84,7 +89,9 @@
               (setq org-clock-today-buffer-time
                     (org-clock-today--total-minutes))
               (funcall org-clock-today-display-format))
-          ""))
+          (if org-clock-today-show-mode-line-when-clock-is-inactive
+              (concat (funcall org-clock-today-display-format) " (inact)")
+            "")))
   (force-mode-line-update))
 
 (defun org-clock-today--start-timer ()
