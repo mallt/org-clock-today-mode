@@ -50,29 +50,59 @@
   :type 'boolean
   :group 'org-clock-today)
 
+(defcustom org-clock-today-max-hours-per-day nil
+  "Maximum hours to work per day.
+If non-nil, display the remaining time until the configured maximum in the
+mode-line. Value is the number of hours (may be integer or float). Set to
+nil to disable. When the worked time exceeds the configured maximum, the
+remaining time is shown as 0:00 (i.e. clamped to zero)."
+  :type '(choice (const :tag "Disabled" nil)
+                 (number :tag "Hours"))
+  :group 'org-clock-today)
+
 (defvar org-clock-today-string "" "The lighter.")
 (defvar org-clock-today-subtree-time nil "Clock count extracted from subtree.")
 (defvar org-clock-today-buffer-time nil "Clock count extracted from buffer.")
 (defvar org-clock-today--timer nil)
 
 (defun org-clock-today--total-minutes ()
-  "Return the total minutes."
+  "Return the total minutes as a formatted duration string.
+This keeps backward compatibility with the original implementation used
+for mode-line display of subtree/buffer times." 
   (let ((org-clock-report-include-clocking-task t))
     (org-duration-from-minutes (org-clock-sum-today))))
 
+(defun org-clock-today--total-minutes-number ()
+  "Return the total minutes worked today as an integer.
+This is used for numeric calculations such as remaining time until max."
+  (let ((org-clock-report-include-clocking-task t))
+    (org-clock-sum-today)))
+
 (defun org-clock-today--display-default ()
-  "Default function to return string for displaying clocks."
-  (concat
-   " "
-   (when org-clock-today-count-subtree
-     (concat org-clock-today-subtree-time " "))
-   org-clock-today-buffer-time))
+  "Default function to return string for displaying clocks.
+If `org-clock-today-max-hours-per-day' is set, append the remaining time
+until the configured maximum in the form " (remaining: H:MM)". The
+remaining time is clamped to zero when the worked time exceeds the max."
+  (let* ((max-str
+          (when org-clock-today-max-hours-per-day
+            (let* ((max-minutes (round (* 60 org-clock-today-max-hours-per-day)))
+                   (worked (org-clock-today--total-minutes-number))
+                   (remaining (- max-minutes worked))
+                   (remaining-clamped (max 0 remaining)))
+              (org-duration-from-minutes remaining-clamped))))
+    (concat
+     " "
+     (when org-clock-today-count-subtree
+       (concat org-clock-today-subtree-time " "))
+     org-clock-today-buffer-time
+     (when max-str (concat " (remaining: " max-str ")")))))
 
 (defcustom org-clock-today-display-format #'org-clock-today--display-default
   "Function to call when building string for mode-line."
   :type '(choice
           (const :tag "Do nothing" ignore)
-          (function :tag "Custom function")))
+          (function :tag "Custom function"))
+  :group 'org-clock-today)
 
 (defun org-clock-today--update-mode-line ()
   "Calculate the total clocked time of today and update the mode line."
